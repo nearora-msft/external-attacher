@@ -215,6 +215,11 @@ func GetVolumeAttributes(csiSource *v1.CSIPersistentVolumeSource) (map[string]st
 	return csiSource.VolumeAttributes, nil
 }
 
+// MarkContextAsMigrated creates and returns a context with the migrated label
+func MarkContextAsMigrated(ctx context.Context) {
+	return context.WithValue(ctx, AdditionalInfo, AdditionalInfo{Migrated: "migrated"})
+}
+
 // createMergePatch return patch generated from original and new interfaces
 func createMergePatch(original, new interface{}) ([]byte, error) {
 	pvByte, err := json.Marshal(original)

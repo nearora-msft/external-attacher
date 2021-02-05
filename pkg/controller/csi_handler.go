@@ -23,6 +23,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/kubernetes-csi/csi-lib-utils/metrics"
 	"github.com/kubernetes-csi/external-attacher/pkg/attacher"
 	v1 "k8s.io/api/core/v1"
 	storage "k8s.io/api/storage/v1"
@@ -512,7 +513,7 @@ func (h *csiHandler) csiAttach(va *storage.VolumeAttachment) (*storage.VolumeAtt
 	defer cancel()
 	// We're not interested in `detached` return value, the controller will
 	// issue Detach to be sure the volume is really detached.
-	publishInfo, _, err := h.attacher.Attach(ctx, volumeHandle, readOnly, nodeID, volumeCapabilities, attributes, secrets)
+	publishInfo, _, err := h.attacher.Attach(MarkContextAsMigrated(ctx), volumeHandle, readOnly, nodeID, volumeCapabilities, attributes, secrets)
 	if err != nil {
 		return va, nil, err
 	}
@@ -566,7 +567,7 @@ func (h *csiHandler) csiDetach(va *storage.VolumeAttachment) (*storage.VolumeAtt
 
 	ctx, cancel := context.WithTimeout(context.Background(), h.timeout)
 	defer cancel()
-	err = h.attacher.Detach(ctx, volumeHandle, nodeID, secrets)
+	err = h.attacher.Detach(MarkContextAsMigrated(ctx), volumeHandle, nodeID, secrets)
 	if err != nil {
 		// The volume may not be fully detached. Save the error and try again
 		// after backoff.
